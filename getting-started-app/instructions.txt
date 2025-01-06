@@ -62,6 +62,8 @@ docker compose up -d
 docker compose logs -f
 docker compose down
 docker compose down --volumes
+By default, docker compose auto creates a network specifically for app stack
+The service names acts as hostname for other services to connect to in compose file
 
 p-8: Image Building optimization
 Copy requirements first and then source code
