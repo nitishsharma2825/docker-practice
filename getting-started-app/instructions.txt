@@ -1,0 +1,68 @@
+P-1
+docker build -t getting-started .
+docker run -d -p 127.0.0.1:3000:3000 getting-started
+
+P-2
+docker ps
+docker rm -f <the-container-id>
+
+P-3
+docker tag getting-started YOUR-USER-NAME/getting-started
+
+P-4
+docker volume create todo-db
+docker rm -f <container-id>
+docker run -dp 127.0.0.1:3000:3000 --mount type=volume,src=todo-db,target=/etc/todos getting-started
+
+P-5
+docker run -it --mount type=bind,src="$(pwd)",target=/src ubuntu bash
+"Inside container"
+cd src
+ls
+touch myfile.txt [visible from host machine too]
+
+docker run -dp 127.0.0.1:3000:3000 \
+    -w /app --mount type=bind,src="$(pwd)",target=/app \
+    node:18-alpine \
+    sh -c "yarn install && yarn run dev"
+
+docker logs -f <container-id>
+
+p-6:
+docker network create todo-app
+docker run -d \
+    --network todo-app --network-alias mysql \
+    -v todo-mysql-data:/var/lib/mysql \
+    -e MYSQL_ROOT_PASSWORD=secret \
+    -e MYSQL_DATABASE=todos \
+    mysql:8.0
+docker exec -it <mysql-container-id> mysql -u root -p
+
+"Container for networking"
+docker run -it --network todo-app nicolaka/netshoot
+dig mysql: this will resolve to ip address of the container that had this network alias
+
+
+docker run -dp 127.0.0.1:3000:3000 \
+  -w /app -v "$(pwd):/app" \
+  --network todo-app \
+  -e MYSQL_HOST=mysql \
+  -e MYSQL_USER=root \
+  -e MYSQL_PASSWORD=secret \
+  -e MYSQL_DB=todos \
+  node:18-alpine \
+  sh -c "yarn install && yarn run dev"
+
+"Check if data items are created"
+docker exec -it <mysql-container-id> mysql -u root -p
+select * from todo_items;
+
+p-7: Docker-compose
+docker compose up -d
+docker compose logs -f
+docker compose down
+docker compose down --volumes
+
+p-8: Image Building optimization
+Copy requirements first and then source code
+Multi-stage builds
